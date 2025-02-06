@@ -1,34 +1,47 @@
 // src/index.ts
 import express, { Request, Response } from 'express';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
+
+interface PrivateMessage {
+  from: string;
+  to: string;
+  content: string;
+}
 
 const app = express();
 const server = createServer(app);
 
-// Create a Socket.IO server with CORS enabled for all origins.
-// In production, replace "*" with your client URL.
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "*", // In production, replace with your client URL
     methods: ["GET", "POST"]
   }
 });
 
-// Serve a simple message at the root route (optional)
+// A simple route
 app.get('/', (_req: Request, res: Response) => {
-  res.send('Socket.IO Chat Server is running.');
+  res.send('Socket.IO 1-on-1 Chat Server is running.');
 });
 
-// Listen for client connections
-io.on('connection', (socket) => {
+// Socket.IO connection handler
+io.on('connection', (socket: Socket) => {
   console.log('A user connected:', socket.id);
 
-  // Listen for incoming chat messages
-  socket.on('chat message', (msg: string) => {
-    console.log('Message received:', msg);
-    // Broadcast the message to all connected clients
-    io.emit('chat message', msg);
+  // Listen for a "join" event so the client can register a unique username.
+  // We use the username as a room name.
+  socket.on('join', (username: string) => {
+    if (typeof username === 'string' && username.trim() !== '') {
+      socket.join(username);
+      console.log(`Socket ${socket.id} joined room: ${username}`);
+    }
+  });
+
+  // Listen for a private message event.
+  socket.on('private message', (payload: PrivateMessage) => {
+    console.log(`Private message from ${payload.from} to ${payload.to}: ${payload.content}`);
+    // Emit the private message to the target user's room.
+    io.to(payload.to).emit('private message', payload);
   });
 
   socket.on('disconnect', () => {
