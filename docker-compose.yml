@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # Node.js application service
+  marketplace:
+    build: .
+    environment:
+      - TENANT_ID=47dd6b24-0b23-46b0-a662-776158d089ba
+      - DB_HOST=db
+      - DB_PORT=5432
+      - JWT_SECRET=auth_jwt_secret
+      - ADMIN_JWT_SECRET=admin_auth_jwt_secret
+    ports:
+      - "8888:8888"
+    depends_on:
+      - db
+
+  # PostgreSQL database service
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"

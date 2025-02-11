@@ -1,0 +1,73 @@
+Title: Auth and Chat Flow Sequence Diagram
+
+actor Client
+participant Gateway
+participant "Auth Session Service" as Auth
+
+participant "Chat Service" as Chat
+participant "Presence Service" as Presence
+participant "Service Discovery (etcd)" as etcd
+
+Note over Client, Gateway: HTTPS Flow (Authentication)
+Client->Gateway: POST /login (credentials)
+Gateway->Auth: Forward login request
+Auth->Auth: Validate credentials & Create session/token
+Auth->Gateway: Return token/session
+Gateway->etcd: watch available chat service
+Gateway->Client: Respond with session token
+
+Note over Client, Chat: WebSocket Flow (Real-Time Chat)
+Client->Gateway: Upgrade to WebSocket (with token)
+Gateway->Gateway: assign auth key to available chat service(round robin)
+
+Gateway->Auth: Validate token
+Auth->Chat: Validation result
+Chat->Presence: Register user as online
+Presence->Chat: Acknowledge presence
+
+Note over Client, Chat: Send Chat Message
+Client->Chat:[WS] Send message 
+Chat->Chat: Process message, store in DB
+
+Chat->Presence: Check recipient status
+Presence->Chat: Recipient online/offline
+Chat->Client:Deliver message to recipient (if online)
+Chat->Recipient: Forward message (if online)
+Chat->Presence: update user (online/offline) status based on ws connection(connect/disconnect)
+Client->Presence: [WS] Forward heartbeat request
+Presence->Presence: update user status to offline if not receiving heartbeat req >2m 
+Presence->Client: [WS] send peer user status changes
+
+https://docs.google.com/drawings/d/1_Z-E5r0XphaA-9Zx1DF6BYoBrK9O3zxm3mHatOiyxOM/edit
+https://sequencediagram.org/
+https://docs.google.com/presentation/d/1nnnNkAV6OdeRX3BVOEwMzicjwCW80VnB8-tNW0CrsJ0/edit?pli=1#slide=id.g32f8a176a17_0_0
+
+
+Table users {
+  id          uuid   [pk]
+  name        varchar
+  last_online timestamp
+}
+
+Table conversations {
+  id   uuid   [pk]
+  name varchar
+  is_group boolean
+}
+
+Table users_conversations {
+  id              uuid   [pk]
+  user_id         uuid   [ref: > users.id]
+  conversation_id uuid   [ref: > conversations.id]
+}
+
+Table messages {
+  id              uuid   [pk]
+  user_id         uuid   [ref: > users.id]
+  conversation_id uuid   [ref: > conversations.id]
+  type            enum
+  content         varchar
+  sent_at         timestamp
+  delivered_at    timestamp
+  seen_at         timestamp
+}
