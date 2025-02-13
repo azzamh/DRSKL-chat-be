@@ -3,8 +3,11 @@ import express, { Request, Response } from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import cors from 'cors';
-// import { chatRouter } from './routes/chat.routes';
+import chatRouter from './chats/chat.routes';
 import userRouter from './users/user.routes';
+import jwt from 'jsonwebtoken';
+import { DecodedToken } from './shared/types';
+import { chatHandler } from './chats/chat.ws.handler';
 
 const app = express();
 const server = createServer(app);
@@ -21,7 +24,7 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 // Routes
-// app.use('/api/chat', chatRouter);
+app.use('/api/chat', chatRouter);
 app.use('/api/user', userRouter);
 
 
@@ -30,9 +33,6 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
-
-
-
 
 
 interface PrivateMessage {
@@ -47,30 +47,45 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
-// Socket.IO connection handler
-io.on('connection', (socket: Socket) => {
-  console.log('A user connected:', socket.id);
 
-  // Listen for a "join" event so the client can register a unique username.
-  // We use the username as a room name.
-  socket.on('join', (username: string) => {
-    if (typeof username === 'string' && username.trim() !== '') {
-      socket.join(username);
-      console.log(`Socket ${socket.id} joined room: ${username}`);
+
+/**
+ * Middleware Socket.IO untuk verifikasi JWT
+ * - Client mengirim token lewat "handshake.auth.token".
+ * - Jika token valid, kita lanjutkan koneksi; jika tidak, tolak.
+ */
+io.use((socket, next) => {
+  // Ambil token dari socket handshake
+  const token = socket.handshake.auth?.token as string
+
+  if (!token) {
+    return next(new Error('No token provided'))
+  }
+
+  // Verifikasi JWT
+  if (!process.env.JWT_SECRET) {
+    return next(new Error('JWT_SECRET is not configured'))
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.error('JWT Error:', err)
+      return next(new Error('Authentication error'))
     }
-  });
 
-  // Listen for a private message event.
-  socket.on('private message', (payload: PrivateMessage) => {
-    console.log(`Private message from ${payload.from} to ${payload.to}: ${payload.content}`);
-    // Emit the private message to the target user's room.
-    io.to(payload.to).emit('private message', payload);
-  });
+    // Simpan data user di socket (cast ke any untuk simplifikasi)
+    ; (socket as any).userData = decoded as DecodedToken
+    return next()
+  })
+})
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-});
+
+
+// Event utama Socket.IO
+io.on('connection', async (socket) => {
+  chatHandler(io, socket)
+})
+
 
 
 // Start the server

@@ -13,7 +13,7 @@ export const updateConversations = async (id: number, data: Partial<typeof schem
                 name: schema.conversations.name,
                 is_group: schema.conversations.is_group,
             });
-        console.log("updateConversations result", result);
+        // console.log("updateConversations result", result);
         return result;
     } catch (error) {
         console.error("updateConversations error", error);

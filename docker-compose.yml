@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   # Node.js application service
-  marketplace:
+  chat-app:
     build: .
     environment:
       - TENANT_ID=47dd6b24-0b23-46b0-a662-776158d089ba
@@ -12,6 +12,10 @@ services:
       - ADMIN_JWT_SECRET=admin_auth_jwt_secret
     ports:
       - "8888:8888"
+    volumes:
+      - .:/app
+      - /app/node_modules  # Agar node_modules dalam container tidak berbenturan
+    command: npx nodemon src/server.ts
     depends_on:
       - db
 
@@ -24,3 +28,8 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+  
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"

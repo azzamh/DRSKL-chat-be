@@ -1,4 +1,4 @@
-import { InternalServerErrorResponse, UnauthorizedResponse } from "@src/shared/commons/patterns";
+import { OkResponse, UnauthorizedResponse } from "@src/shared/commons/patterns";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { getUserById } from "../dao/getUserById.dao";
 
@@ -18,12 +18,8 @@ export const verifyAdminTokenService = async (
             return new UnauthorizedResponse("Invalid token").generate();
         }
 
-        return {
-            data: {
-                user,
-            },
-            status: 200
-        }
+        return new OkResponse(user).generate()
+       
     } catch (err: any) {
         return new UnauthorizedResponse("Invalid token").generate();
     }

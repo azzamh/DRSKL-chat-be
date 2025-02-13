@@ -5,3 +5,9 @@ export interface User {
   full_name: string | null;
   address: string | null;
 }
+
+export interface DecodedToken {
+  id: number
+  iat?: number
+  exp?: number
+}

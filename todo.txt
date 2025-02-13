@@ -1,0 +1,34 @@
+1. start conversation(1 on 1)[HTTP]:                                         V
+    -  param: peer_username, sender_username(token)
+    -  response: conversation_id
+2. get conversation list [HTTP]:                                               V                     
+    -  param: sender_username(token)
+    -  response: [] {conversation_id, last_message, timestamp} 
+3. get conversation messages [HTTP]:                                            V
+   -  param: sender_username(token), message_id(-1 untuk last mesages), number_of_messages, 
+   -  response: [] {message_id, conversation_id, message, sender_username, receiver_username, timestamp}
+4. send_message [WS]:
+    -  param: sender_username(token), conversation_id, message
+    -  response: message_id, conversation_id
+5. on_messages_received [WS]:
+    -  response: message_id, conversation_id, message, sender_username, receiver_username, timestamp
+
+
+6. kirim ke redis pubsub setelah terima event send_messeges
+    - cek apakah receiver online?
+    - query ke db, get user by id ketika send messages (sender & recivier)
+    - simpan ke redis
+    - get reciver chat instance serv addr dari redis [nanti dulu setelah MS]
+    - kirim messags ke pubsub [contain sender & reciver info]
+
+7. menerima subscribe sendmessages dr redis, kemudian emit ke client yg di tuju
+    - emit ke client
+
+8. buat watcher 
+
+
+=========================
+
+
+buat gateway app
+

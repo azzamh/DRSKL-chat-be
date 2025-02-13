@@ -4,7 +4,6 @@ import { db } from "@src/db";
 
 export const insertUserConversations = async (data: NewUsersConversations) => {
     console.log("insertUserConversations data", data);
-    console.log("insertUserConversations db", db);
     const result = await db
         .insert(schema.usersConversations)
         .values(data)
@@ -13,6 +12,5 @@ export const insertUserConversations = async (data: NewUsersConversations) => {
             user_id: schema.usersConversations.user_id,
             conversation_id: schema.usersConversations.conversation_id,
         });
-    console.log("insertUserConversations result", result);
     return result;
 }
