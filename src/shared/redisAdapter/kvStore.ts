@@ -5,7 +5,7 @@ export const setKey = async (key: string, value: string, expiryInSeconds?: numbe
     if (expiryInSeconds) {
       await redis.set(key, value, 'EX', expiryInSeconds);
     } else {
-      await redis.set(key, value);
+      await redis.set(key, value, 'EX', 3600);
     }
     console.log(`✅ Key "${key}" set successfully`);
   } catch (error) {
@@ -24,8 +24,8 @@ export const getKey = async (key: string) => {
   }
 };
 
-// Test the KV operations
-(async () => {
-  await setKey('user:azzam', 'Hello, Azzam!', 30); // Key expires in 30 seconds
-  await getKey('user:azzam');
-})();
+// // Test the KV operations
+// (async () => {
+//   await setKey('user:azzam', 'Hello, Azzam!', 30); // Key expires in 30 seconds
+//   await getKey('user:azzam');
+// })();

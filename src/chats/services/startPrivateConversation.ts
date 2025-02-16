@@ -2,7 +2,7 @@ import { db } from "@src/db";
 import { insertNewConversations } from "../dao/conversations/insert";
 import { NewConversations } from "@db/schema/chat/conversations";
 import { insertUserConversations } from "../dao/userConversations/insert";
-import { getUserByUsername } from "@src/users/dao/getUserByUsername.dao";
+import { getUserByUsername } from "@src/users/dao/get";
 import { NotFoundResponse } from "@src/shared/commons/patterns";
 import { getPrivateConversationByUserIds } from "@src/chats/dao/conversations/get";
 import { InternalServerErrorResponse, OkResponse } from "@src/shared/commons/patterns";
@@ -37,12 +37,12 @@ export const startPrivateConversation = async (userId: string, peerUsername: str
             // console.log('newConversation', newConversation)
             await insertUserConversations({
                 user_id: userId,
-                conversation_id: newConversation[0].id,
+                conversation_id: newConversation.id,
             });
 
             await insertUserConversations({
                 user_id: peerUser.id,
-                conversation_id: newConversation[0].id,
+                conversation_id: newConversation.id,
             });
 
             return new OkResponse(newConversation).generate()

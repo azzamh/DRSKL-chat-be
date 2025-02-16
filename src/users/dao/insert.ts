@@ -5,7 +5,11 @@ import { db } from "@src/db";
 export const insertNewUser = async (data: NewUser) => {
     const result = await db
         .insert(schema.users)
-        .values(data)
+        .values({
+            ...data,
+            created_at: new Date(),
+            updated_at: new Date(),
+        })
         .returning({
             id: schema.users.id,
             username: schema.users.username,
@@ -13,3 +17,4 @@ export const insertNewUser = async (data: NewUser) => {
         })
     return result;
 }
+

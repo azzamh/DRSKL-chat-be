@@ -10,6 +10,9 @@ services:
       - DB_PORT=5432
       - JWT_SECRET=auth_jwt_secret
       - ADMIN_JWT_SECRET=admin_auth_jwt_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_password
     ports:
       - "8888:8888"
     volumes:
@@ -31,5 +34,7 @@ services:
   
   redis:
     image: redis:latest
+    environment:
+      REDIS_PASSWORD: redis_password
     ports:
       - "6379:6379"

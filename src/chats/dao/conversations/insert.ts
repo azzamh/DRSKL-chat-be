@@ -13,7 +13,7 @@ export const insertNewConversations = async (data: NewConversations) => {
             id: schema.conversations.id,
             name: schema.conversations.name,
             is_group: schema.conversations.is_group,
-        }).execute();
+        });
     // console.log("insertNewConversations result", result);
-    return result;
+    return result[0];
 }

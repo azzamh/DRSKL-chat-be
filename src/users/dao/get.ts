@@ -23,4 +23,15 @@ export const getUserById = async (user_id: string) => {
     return result[0];
 }
 
+export const getUserByUsername = async (username: string) => {
+    const result = await db
+        .select()
+        .from(schema.users)
+        .where(
+            and(
+                eq(schema.users.username, username),
 
+            )
+        )
+    return result[0];
+}

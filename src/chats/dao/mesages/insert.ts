@@ -18,5 +18,5 @@ export const insertNewMessage = async (data: NewMessage) => {
             seen_at: schema.messages.seen_at,
         });
     // console.log("insertNewMessage result", result);
-    return result;
+    return result[0];
 }

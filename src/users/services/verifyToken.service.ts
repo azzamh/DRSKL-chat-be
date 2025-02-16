@@ -1,6 +1,6 @@
 import { InternalServerErrorResponse, UnauthorizedResponse } from "@src/shared/commons/patterns";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { getUserById } from "../dao/getUserById.dao";
+import { getUserById } from "../dao/get";
 
 export const verifyTokenService = async (
     token: string

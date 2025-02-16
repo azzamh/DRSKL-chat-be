@@ -1,15 +1,12 @@
 import Redis from 'ioredis';
+import { promisify } from 'util'
 
-// Basic connection to localhost
-const redis = new Redis(); // Defaults to localhost:6379
-
-// OR connect to a custom host
-// const redis = new Redis({
-//   host: '127.0.0.1',
-//   port: 6379,
-//   password: 'your_password',  // If Redis is secured
-//   db: 0                        // Optional: Select specific DB (default is 0)
-// });
+const redis = new Redis({
+  host: process.env.REDIS_HOST || 'redis',
+  port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
+  password: process.env.REDIS_PASSWORD,  // If Redis is secured
+  db: 0                        // Optional: Select specific DB (default is 0)
+});
 
 // Event listeners for connection status
 redis.on('connect', () => console.log('✅ Connected to Redis'));
@@ -20,3 +17,7 @@ redis.on('reconnecting', () => console.log('♻️ Reconnecting to Redis...'));
 
 // Export for reuse
 export default redis;
+
+
+export const getAsync = promisify(redis.get).bind(redis)
+export const setAsync = promisify(redis.set).bind(redis)
