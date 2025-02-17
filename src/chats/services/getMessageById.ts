@@ -3,7 +3,7 @@ import { InternalServerErrorResponse, OkResponse } from "@src/shared/commons/pat
 
 export const getMessageById = async (conversationId: number) => {
     try{
-        const res = daoMessages.getMessageById(conversationId);
+        const res = await daoMessages.getMessageById(conversationId);
         return new OkResponse(res).generate()
     } catch (err: any) {
         return new InternalServerErrorResponse(err).generate()

@@ -1,18 +1,20 @@
 import { db } from "@src/db";
-import { getPrivateConversationByUserIds } from "../dao/conversations/get";
+import { getConversationById, getPrivateConversationByUserIds } from "../dao/conversations/get";
 import { insertNewMessage } from "../dao/mesages/insert";
-import { InternalServerErrorResponse, OkResponse } from "@src/shared/commons/patterns";
+import { gePeerIdByConversationId } from "../dao/conversations/get";
+import { InternalServerErrorResponse, CreatedResponse, NotFoundResponse } from "@src/shared/commons/patterns";
 import { startPrivateConversation } from "./startPrivateConversation";
+import * as redis from '@src/shared/redisAdapter'
+import { getUserById } from "@src/users/dao/get";
 
-export const sendPrivateMessage = async (sender_id: string, receiver_id: string, message: string) => {
+export const sendPrivateMessage = async (sender_id: string, conversation_id: string, message: string) => {
 
     try {
         const result = await db.transaction(async (tx) => {
-            let conversation = await getPrivateConversationByUserIds(sender_id, receiver_id);
+            let conversation = await getConversationById(Number(conversation_id));
 
             if (!conversation) {
-                await startPrivateConversation(sender_id, receiver_id);
-                conversation = await getPrivateConversationByUserIds(sender_id, receiver_id);
+                return new NotFoundResponse('Conversation not found').generate()
             }
 
             const newMessage = await insertNewMessage( {
@@ -21,7 +23,31 @@ export const sendPrivateMessage = async (sender_id: string, receiver_id: string,
                 content: message,
             });
 
-            return new OkResponse(newMessage).generate();
+            const receiver_id = await gePeerIdByConversationId(conversation.id, sender_id);
+
+
+            if (newMessage) {
+                const pubsubPrivateMessageData = {
+                  senderId: sender_id,
+                  recipientId: receiver_id,
+                  messageId: newMessage.id,
+                }
+                redis.publishMessage(`send_messages:${receiver_id}`, JSON.stringify(pubsubPrivateMessageData))
+            }
+
+            const user = await getUserById(sender_id);
+
+            const resp = {
+                id: newMessage.id,
+                user_id: sender_id,
+                username: user.username,
+                conversation_id: conversation.id,
+                full_name: user.full_name,
+                content: newMessage.content,
+                delivered_at: newMessage.delivered_at,
+            }
+
+            return new CreatedResponse(resp).generate();
             
         });
 

@@ -31,3 +31,11 @@ export const getUserInfo = async (req: Request, res: Response): Promise<void> =>
     const response = await Service.getUserInfoService(userId);
     res.status(response.status).json(response);
 }
+
+
+export const getUserInfoByUserName = async (req: Request, res: Response): Promise<void> => {
+    console.log(req.params.username);
+    const username = req.params.username
+    const response = await Service.getUserByUsername(username);
+    res.status(response.status).json(response);
+}

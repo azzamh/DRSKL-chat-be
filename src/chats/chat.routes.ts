@@ -9,6 +9,7 @@ const router = express.Router();
 router.post("/conversation/start", verifyJWT, validate(Validation.startPrivateConversation), Handler.startPrivateConversation);
 router.get("/conversation/list", verifyJWT ,Handler.getConversationsList);
 router.get("/conversation/:conversation_id/messages", verifyJWT, Handler.getMessagesByConversation);
+router.post("/message/send", verifyJWT, validate(Validation.sendMessage), Handler.sendPrivateMessage);
 
 export default router;
 
